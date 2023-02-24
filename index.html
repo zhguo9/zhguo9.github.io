@@ -3,10 +3,11 @@ layout: default
 title: Home
 ---
 
+{% include archive.html %}
 
 <div class="posts">
-  <!-- Pined posts -->
-  {% if paginator.page == 1 %}
+  <!---Pined posts---> 
+  <!-- {% if paginator.page == 1 %}
     {% for post in site.posts %}
       {% if post.pined %}
         {% if post.lang %}
@@ -32,7 +33,7 @@ title: Home
         <hr>
       {% endif %}
     {% endfor %}
-  {% endif %}
+  {% endif %} -->
 
   <!-- Normal posts listed in the order of time -->
 
@@ -48,6 +49,7 @@ title: Home
       </a>
     </h1>
 
+
     <span class="post-tags">
       [&nbsp;
       {% for tag in post.tags %}
@@ -59,7 +61,7 @@ title: Home
 
     <span class="post-date">{{ post.date | date_to_string }}</span>
 
-    {{ post.content }}
+    <!-- {{ post.content }} -->
   </div>
   <hr>
   {% endfor %}
@@ -67,12 +69,13 @@ title: Home
 
 
 <!-- Pagination -->
-<div class="pagination">
+<!-- <div class="pagination">
   {% if paginator.next_page %}
     <a class="pagination-item older" href="/page{{paginator.next_page}}">Older</a>
   {% else %}
     <span class="pagination-item older">Older</span>
   {% endif %}
+
   {% if paginator.previous_page %}
     {% if paginator.page == 2 %}
       <a class="pagination-item newer" href="/">Newer</a>
@@ -82,4 +85,4 @@ title: Home
   {% else %}
     <span class="pagination-item newer">Newer</span>
   {% endif %}
-</div>
+</div> -->
