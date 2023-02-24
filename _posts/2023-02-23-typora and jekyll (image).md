@@ -1,7 +1,7 @@
 ---
 title: typora and jekyll (image)
 typora-root-url: ./
-layout: default	
+layout: post
 ---
 
 ## 1. set the image root path(eg : zhguo9.github.io )
