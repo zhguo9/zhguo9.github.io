@@ -2,7 +2,7 @@
 date=$(date '+%Y-%m-%d')
 read -p "enter title:" title
 touch _posts/"$date-$title".md
-echo $"---
+echo "---
 title: $title
 typora-root-url: ./
 ---
