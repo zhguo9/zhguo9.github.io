@@ -6,6 +6,13 @@ echo $"---
 title: $title
 typora-root-url: ./
 ---
+[toc]
+
+
+
+
+
+> Happy Hacking !
 " >> _posts/"$date-$title".md
 typora _posts/"$date-$title".md &
 exit 0
