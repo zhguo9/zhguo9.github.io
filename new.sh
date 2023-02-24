@@ -6,7 +6,7 @@ echo $"---
 title: $title
 typora-root-url: ./
 ---
-[toc]
+
 
 
 
