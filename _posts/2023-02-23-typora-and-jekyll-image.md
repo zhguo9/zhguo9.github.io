@@ -2,19 +2,20 @@
 title: typora and jekyll (image)
 typora-root-url: ./
 layout: post
+tags: blog
 ---
 
 ## 1. set the image root path(eg : zhguo9.github.io )
 
 ![image-20230223210703137](/../assets/images/2023-02-23-typora and jekyll (image)/image-20230223210703137.png)
-
+<!-- ![image-20230223210703137](../images/2023-02-23-typora and jekyll (image)/image-20230223210703137.png) -->
 ## 2. set the insert path
 
 ```
 ../assets/images/${filename}
 ```
 
-![image-20230223210823384](/../assets/images/2023-02-23-typora and jekyll (image)/image-20230223210823384.png)
+![image-20230223210823384](/../public/images/2023-02-23-typora and jekyll (image)/image-20230223210823384.png)
 
 ## 3. touch a new file called new.sh for establishing new post
 

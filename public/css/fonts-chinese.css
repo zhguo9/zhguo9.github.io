@@ -1,0 +1,90 @@
+/*
+ * cwTeXMing (Chinese Traditional) http://www.google.com/fonts/earlyaccess
+ */
+@font-face {
+  font-family: 'cwTeXMing';
+  font-style: normal;
+  font-weight: 500;
+  src: url(/public/css/fonts-local/cwTeXMing-zhonly.eot);
+  src: url(/public/css/fonts-local/cwTeXMing-zhonly-iefix.eot) format('embedded-opentype'),
+       url(/public/css/fonts-local/cwTeXMing-zhonly.woff2) format('woff2'),
+       url(/public/css/fonts-local/cwTeXMing-zhonly.woff) format('woff'),
+       url(/public/css/fonts-local/cwTeXMing-zhonly.ttf) format('truetype');
+}
+/*
+ * cwTeXKai (Chinese Traditional) http://www.google.com/fonts/earlyaccess
+ */
+/*@font-face {
+  font-family: 'cwTeXKai';
+  font-style: normal;
+  font-weight: 500;
+  src: url(/public/css/fonts-local/cwTeXKai-zhonly.eot);
+  src: url(/public/css/fonts-local/cwTeXKai-zhonly-iefix.eot) format('embedded-opentype'),
+       url(/public/css/fonts-local/cwTeXKai-zhonly.woff2) format('woff2'),
+       url(/public/css/fonts-local/cwTeXKai-zhonly.woff) format('woff'),
+       url(/public/css/fonts-local/cwTeXKai-zhonly.ttf) format('truetype');
+}*/
+/*
+ * cwTeXHei (Chinese-traditional) http://www.google.com/fonts/earlyaccess
+ */
+@font-face {
+  font-family: 'cwTeXHei';
+  font-style: normal;
+  font-weight: 500;
+  src: url(/public/css/fonts-local/cwTeXHei-zhonly.eot);
+  src: url(/public/css/fonts-local/cwTeXHei-zhonly-iefix.eot) format('embedded-opentype'),
+       url(/public/css/fonts-local/cwTeXHei-zhonly.woff2) format('woff2'),
+       url(/public/css/fonts-local/cwTeXHei-zhonly.woff) format('woff'),
+       url(/public/css/fonts-local/cwTeXHei-zhonly.ttf) format('truetype');
+}
+/*
+* Noto Sans SC (Chinese Simplified) http://www.google.com/fonts/earlyaccess
+ */
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-weight: 100;
+  src: url(/public/css/fonts-local/NotoSansSC-Thin.woff2) format('woff2'),
+       url(/public/css/fonts-local/NotoSansSC-Thin.woff) format('woff'),
+       url(/public/css/fonts-local/NotoSansSC-Thin.otf) format('opentype');
+}
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-weight: 300;
+  src: url(/public/css/fonts-local/NotoSansSC-Light.woff2) format('woff2'),
+       url(/public/css/fonts-local/NotoSansSC-Light.woff) format('woff'),
+       url(/public/css/fonts-local/NotoSansSC-Light.otf) format('opentype');
+}
+@font-face {
+   font-family: 'Noto Sans SC';
+   font-style: normal;
+   font-weight: 400;
+   src: url(/public/css/fonts-local/NotoSansSC-Regular.woff2) format('woff2'),
+        url(/public/css/fonts-local/NotoSansSC-Regular.woff) format('woff'),
+        url(/public/css/fonts-local/NotoSansSC-Regular.otf) format('opentype');
+ }
+@font-face {
+   font-family: 'Noto Sans SC';
+   font-style: normal;
+   font-weight: 500;
+   src: url(/public/css/fonts-local/NotoSansSC-Medium.woff2) format('woff2'),
+        url(/public/css/fonts-local/NotoSansSC-Medium.woff) format('woff'),
+        url(/public/css/fonts-local/NotoSansSC-Medium.otf) format('opentype');
+ }
+@font-face {
+   font-family: 'Noto Sans SC';
+   font-style: normal;
+   font-weight: 700;
+   src: url(/public/css/fonts-local/NotoSansSC-Bold.woff2) format('woff2'),
+        url(/public/css/fonts-local/NotoSansSC-Bold.woff) format('woff'),
+        url(/public/css/fonts-local/NotoSansSC-Bold.otf) format('opentype');
+ }
+@font-face {
+   font-family: 'Noto Sans SC';
+   font-style: normal;
+   font-weight: 900;
+   src: url(/public/css/fonts-local/NotoSansSC-Black.woff2) format('woff2'),
+        url(/public/css/fonts-local/NotoSansSC-Black.woff) format('woff'),
+        url(/public/css/fonts-local/NotoSansSC-Black.otf) format('opentype');
+ }
