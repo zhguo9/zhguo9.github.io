@@ -1,6 +1,6 @@
 ---
 layout: tagpage
-title: "Tag: cpt"
-tag: cpt
+title: "Tag: server"
+tag: server
 robots: noindex
 ---
