@@ -1,5 +1,5 @@
 #!/bin/sh
-
+cd "./_posts/"
 FILE=`zenity --file-selection --title="Select a File"`
 
 case $? in

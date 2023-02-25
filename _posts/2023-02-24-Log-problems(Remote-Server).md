@@ -1,6 +1,7 @@
 ---
 title: Log problems(Remote Server)
 typora-root-url: ./
+tags: server
 ---
 
 [toc]

@@ -68,7 +68,7 @@ html {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 24rem;
+    width: 16rem;
     text-align: right;
   }
 }
@@ -78,7 +78,7 @@ html {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 24rem;
+    width: 16rem;
     text-align: right;
   }
 }
@@ -88,7 +88,7 @@ html {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 44rem;
+    width: 16rem;
     text-align: right;
   }
 }
@@ -153,15 +153,15 @@ a.sidebar-nav-item:focus {
 @media (min-width: 48rem) {
   .content {
     max-width: 44rem;
-    margin-left: 26rem;
-    margin-right: 2rem;
+    margin-left: 18rem;
+    margin-right: 3rem;
   }
 }
 
 @media (min-width: 64rem) {
   .content {
-    margin-left: 26rem;
-    margin-right: 4rem;
+    margin-left: 18rem;
+    margin-right: 6rem;
   }
 }
 @media (min-width: 96rem) {

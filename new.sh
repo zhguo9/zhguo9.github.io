@@ -5,9 +5,8 @@ touch _posts/"$date-$title".md
 echo "---
 title: $title
 typora-root-url: ./
+tags: 
 ---
-
-
 
 
 
