@@ -26,4 +26,22 @@ DNS服务器层层解析。
 局域网里通信使用MAC地址
 
 
+
+## 2
+
+### DNS污染/劫持：墙将墙外的DNS服务器传输回来的IP地址篡改
+
+一个对应DNS污染的方法：修改本地host文件，使得先找的host文件中有对应关系。
+
+> 传输层协议：TCP和UDP。 TCP是要先建立链接的，而UDP不用。应用层的HTTP协议是建立在TCP之上的，要使用HTTP，要先用TCP建立连接
+
+### TCP重置攻击
+
+
+
+## 3 How to establish
+
+VPS
+
+
 > Happy Hacking !
