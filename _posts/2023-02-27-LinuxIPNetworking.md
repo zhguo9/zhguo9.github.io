@@ -10,27 +10,17 @@ Copied From Kernelnewbies! For Thanks ! !
 
 **Abstract**
 
-This document is a guide to understanding how the Linux kernel (version 2.2.14 specifically) implements networking protocols, focused primarily on the Internet Protocol (IP). It is intended as a complete reference for experimenters with overviews, walk-throughs, source code explanations, and examples. The first part contains an in-depth examination of the code, data structures, and functionality involved with networking. There are chapters on initialization, connections and sockets, and receiving, transmitting, and forwarding packets. The second part contains detailed instructions for modifiying the kernel source code and installing new modules. There are chapters on kernel installation, modules, the proc file system, and a complete example.
-
-**Contents**
-
-
+This document is a guide to understanding how the Linux kernel (version 2.2.14 specifically) implements networking protocols, **focused primarily on the Internet Protocol (IP).** It is intended as a complete reference for experimenters with overviews, walk-throughs, source code explanations, and examples. **The first part contains an in-depth examination of the code, data structures, and functionality involved with networking.** There are chapters on initialization, connections and sockets, and receiving, transmitting, and forwarding packets. **The second part contains detailed instructions for modifiying the kernel source code and installing new modules.** There are chapters on kernel installation, modules, the proc file system, and a complete example.
 
 ## 1. Introduction
 
-
-
 This is version 1.0 of this document, dated May 31, 2000, referencing the Linux kernel version 2.2.14.
-
-
 
 ### 1.1. Background
 
-
-
 Linux is becoming more and more popular as an alternative operating system. Since it is freely available to everyone as part of the open source movement, literally thousands of programmers are constantly working on the code to implement new features, improve existing ones, and fix bugs and inefficiencies in the code. There are many sources for learning more about Linux, from the source code itself (downloadable from the Internet) to books to "HOW-TOs" and message boards maintained on many different subjects.
 
-This document is an effort to bring together many of these sources into one coherent reference on and guide to modifying the networking code within the Linux kernel. It presents the internal workings on four levels: a general overview, more specific examinations of network activities, detailed function walk-throughs, and references to the actual code and data structures. It is designed to provide as much or as little detail as the reader desires. This guide was written specifically about the Linux 2.2.14 kernel (which has already been superseded by 2.2.15) and many of the examples come from the Red Hat 6.1 distribution; hopefully the information provided is general enough that it will still apply across distributions and new kernels. It also focuses almost exclusively on TCP/UDP, IP, and Ethernet - which are the most common but by no means the only networking protocols available for Linux platforms.
+This document is an effort to bring together many of these sources into one coherent reference on and guide to modifying the networking code within the Linux kernel. **It presents the internal workings on four levels: a general overview, more specific examinations of network activities, detailed function walk-throughs, and references to the actual code and data structures.** It is designed to provide as much or as little detail as the reader desires. This guide was written specifically about the Linux 2.2.14 kernel (which has already been superseded by 2.2.15) and many of the examples come from the Red Hat 6.1 distribution; hopefully the information provided is general enough that it will still apply across distributions and new kernels. It also focuses almost exclusively on TCP/UDP, IP, and Ethernet - which are the most common but by no means the only networking protocols available for Linux platforms.
 
 As a reference for kernel programmers, this document includes information and pointers on editing and recompiling the kernel, writing and installing modules, and working with the */proc* file system. It also presents an example of a program that drops packets for a selected host, along with analysis of the results. Between the descriptions and the examples, this should answer most questions about how Linux performs networking operations and how you can modify it to suit your own purposes.
 
