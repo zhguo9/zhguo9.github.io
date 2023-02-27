@@ -1,7 +1,7 @@
 ---
 title: Hacking-the-wholism-of-GNULinux-net*
 typora-root-url: ./
-tags: 
+tags: subsystem
 ---
 
 root@slackware-13.1:/home/forsaken# uname -a
@@ -589,22 +589,22 @@ src/arch/x86/kernel/entry_32.S:
  * We pack 7 stubs into a single 32-byte chunk, which will fit in a
  * single cache line on all modern x86 implementations.
  */
- .section .init.rodata,"a"
- ENTRY(interrupt)
- .text
+  .section .init.rodata,"a"
+  ENTRY(interrupt)
+  .text
 	.p2align 5
 	.p2align CONFIG_X86_L1_CACHE_SHIFT
- ENTRY(irq_entries_start)
+  ENTRY(irq_entries_start)
 	RING0_INT_FRAME
- vector=FIRST_EXTERNAL_VECTOR
- .rept (NR_VECTORS-FIRST_EXTERNAL_VECTOR+6)/7
+  vector=FIRST_EXTERNAL_VECTOR
+  .rept (NR_VECTORS-FIRST_EXTERNAL_VECTOR+6)/7
 	.balign 32
     .rept	7
     .if vector < NR_VECTORS
       .if vector <> FIRST_EXTERNAL_VECTOR
 	CFI_ADJUST_CFA_OFFSET -4
       .endif
- 1:	pushl $(~vector+0x80)	/* Note: always in signed byte range */
+  1:	pushl $(~vector+0x80)	/* Note: always in signed byte range */
 	CFI_ADJUST_CFA_OFFSET 4
       .if ((vector-FIRST_EXTERNAL_VECTOR)%7) <> 6
 	jmp 2f
@@ -612,12 +612,12 @@ src/arch/x86/kernel/entry_32.S:
       .previous
 	.long 1b
       .text
- vector=vector+1
+  vector=vector+1
     .endif
     .endr
- 2:	jmp common_interrupt
- .endr
- END(irq_entries_start)
+  2:	jmp common_interrupt
+  .endr
+  END(irq_entries_start)
 
 See, the common code starts at label common_interrupt and consists of
 the following assembly language macros and instructions:
@@ -646,8 +646,8 @@ found in src/arch/x86/kernel/irq.c:
  * SMP cross-CPU interrupts have their own specific
  * handlers).
  */
- unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
- {
+  unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
+  {
 	struct pt_regs *old_regs = set_irq_regs(regs);
 
 	/* high bit used in ret_from_ code  */
@@ -671,7 +671,7 @@ found in src/arch/x86/kernel/irq.c:
 
 	set_irq_regs(old_regs);
 	return 1;
- }
+  }
 
 Finally, the handle_irq() function calls the rtl8169_interrupt()
 function by a function pointer "desc->handle_irq(irq, desc)", which
@@ -721,15 +721,15 @@ invoking __napi_schedule() to add the devices to a poll list:
  *
  * The entry's receive function will be scheduled to run
  */
- void __napi_schedule(struct napi_struct *n)
- {
+  void __napi_schedule(struct napi_struct *n)
+  {
 	unsigned long flags;
 
 	local_irq_save(flags);
 	list_add_tail(&n->poll_list, &__get_cpu_var(softnet_data).poll_list);
 	__raise_softirq_irqoff(NET_RX_SOFTIRQ);
 	local_irq_restore(flags);
- }
+  }
 
 Both receipt and transmission methods of softirqs are registered in
 net_dev_init() which can be found in src/net/core/dev.c:
@@ -890,13 +890,13 @@ which can be found in src/net/core/dev.c:
 ​		goto out_kfree_skb;
 
 ​	/* Fragmented skb is linearized if device does not support SG,
-	 * or if at least one of fragments is in highmem and device
-	 * does not support DMA from it.
-	 */
-		if (skb_shinfo(skb)->nr_frags &&
-	    (!(dev->features & NETIF_F_SG) || illegal_highdma(dev, skb)) &&
-	    __skb_linearize(skb))
-		goto out_kfree_skb;
+​	 * or if at least one of fragments is in highmem and device
+​	 * does not support DMA from it.
+​	 */
+​		if (skb_shinfo(skb)->nr_frags &&
+​	    (!(dev->features & NETIF_F_SG) || illegal_highdma(dev, skb)) &&
+​	    __skb_linearize(skb))
+​		goto out_kfree_skb;
 
 	/* If packet is not checksummed and device does not support
 	 * checksumming for this protocol, complete checksumming here.
@@ -912,28 +912,28 @@ And queue a buffer for transmission to a network device by invoking
 the __dev_xmit_skb() function, as you can see below code snippet:
 
 ​		/*
-		 * This is a work-conserving queue; there are no old skbs
-		 * waiting to be sent out; and the qdisc is not running -
-		 * xmit the skb directly.
-		 */
-			__qdisc_update_bstats(q, skb->len);
-			if (sch_direct_xmit(skb, q, dev, txq, root_lock))
-			__qdisc_run(q);
+​		 * This is a work-conserving queue; there are no old skbs
+​		 * waiting to be sent out; and the qdisc is not running -
+​		 * xmit the skb directly.
+​		 */
+​			__qdisc_update_bstats(q, skb->len);
+​			if (sch_direct_xmit(skb, q, dev, txq, root_lock))
+​			__qdisc_run(q);
 
 Finnaly, raise a softirq of TX by invoking the __netif_schedule()
 function in __qdisc_run():
 
 ​	while (qdisc_restart(q)) {
 ​		/*
-		 * Postpone processing if
-		 * 1. another process needs the CPU;
-		 * 2. we've been doing it for too long.
-		 */
-		 if (need_resched() || jiffies != start_time) {
-			 __netif_schedule(q);
-			 break;
-		 }
-		 }
+​		 * Postpone processing if
+​		 * 1. another process needs the CPU;
+​		 * 2. we've been doing it for too long.
+​		 */
+​		 if (need_resched() || jiffies != start_time) {
+​			 __netif_schedule(q);
+​			 break;
+​		 }
+​		 }
 
 In the func __netif_reschedule(), the softirq has been raised:
 
@@ -1088,21 +1088,21 @@ check the length of the packet which should not be bigger than MTU,
 etc:
 
 ​	/*
-	 *	According to the RFC, we must first decrease the TTL field. If
-	 *	that reaches zero, we must reply an ICMP control message telling
-	 *	that the packet's lifetime expired.
-	 */
-		if (ip_hdr(skb)->ttl <= 1)
-		goto too_many_hops;
+​	 *	According to the RFC, we must first decrease the TTL field. If
+​	 *	that reaches zero, we must reply an ICMP control message telling
+​	 *	that the packet's lifetime expired.
+​	 */
+​		if (ip_hdr(skb)->ttl <= 1)
+​		goto too_many_hops;
 
 	if (!xfrm4_route_forward(skb))
 		goto drop;
-
+	
 	rt = skb_rtable(skb);
-
+	
 	if (opt->is_strictroute && rt->rt_dst != rt->rt_gateway)
 		goto sr_failed;
-
+	
 	if (unlikely(skb->len > dst_mtu(&rt->u.dst) && !skb_is_gso(skb) &&
 		     (ip_hdr(skb)->frag_off & htons(IP_DF))) && !skb->local_df) {
 		IP_INC_STATS(dev_net(rt->u.dst.dev), IPSTATS_MIB_FRAGFAILS);

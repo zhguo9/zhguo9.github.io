@@ -4,150 +4,15 @@ typora-root-url: ./
 tags: subsystem
 ---
 
-**A Guide to the Implementation and Modification of the Linux Protocol Stack**
-
-**Glenn Herrin**
-
-**TR 00-04**
+Copied From Kernelnewbies! For Thanks ! !
 
 ***May 31, 2000***
-
-
 
 **Abstract**
 
 This document is a guide to understanding how the Linux kernel (version 2.2.14 specifically) implements networking protocols, focused primarily on the Internet Protocol (IP). It is intended as a complete reference for experimenters with overviews, walk-throughs, source code explanations, and examples. The first part contains an in-depth examination of the code, data structures, and functionality involved with networking. There are chapters on initialization, connections and sockets, and receiving, transmitting, and forwarding packets. The second part contains detailed instructions for modifiying the kernel source code and installing new modules. There are chapters on kernel installation, modules, the proc file system, and a complete example.
 
-
-
-
-
 **Contents**
-
-目录
-
-1. Introduction
-   1. [Background](https://kernelnewbies.org/Documents/LinuxIPNetworking#Background)
-   2. [Document Conventions](https://kernelnewbies.org/Documents/LinuxIPNetworking#Document_Conventions)
-   3. [Sample Network Example](https://kernelnewbies.org/Documents/LinuxIPNetworking#Sample_Network_Example)
-   4. [Copyright, License, and Disclaimer](https://kernelnewbies.org/Documents/LinuxIPNetworking#Copyright.2C_License.2C_and_Disclaimer)
-   5. [Acknowledgements](https://kernelnewbies.org/Documents/LinuxIPNetworking#Acknowledgements)
-2. Message Traffic Overview
-   1. [The Network Traffic Path](https://kernelnewbies.org/Documents/LinuxIPNetworking#The_Network_Traffic_Path)
-   2. [The Protocol Stack](https://kernelnewbies.org/Documents/LinuxIPNetworking#The_Protocol_Stack)
-   3. [Packet Structure](https://kernelnewbies.org/Documents/LinuxIPNetworking#Packet_Structure)
-   4. [Internet Routing](https://kernelnewbies.org/Documents/LinuxIPNetworking#Internet_Routing)
-3. Network Initialization
-   1. [Overview](https://kernelnewbies.org/Documents/LinuxIPNetworking#Overview)
-   2. Startup
-      1. [The Network Initialization Script](https://kernelnewbies.org/Documents/LinuxIPNetworking#The_Network_Initialization_Script)
-      2. [ifconfig](https://kernelnewbies.org/Documents/LinuxIPNetworking#ifconfig)
-      3. [route](https://kernelnewbies.org/Documents/LinuxIPNetworking#route)
-      4. [Dynamic Routing Programs](https://kernelnewbies.org/Documents/LinuxIPNetworking#Dynamic_Routing_Programs)
-   3. Examples
-      1. [Home Computer](https://kernelnewbies.org/Documents/LinuxIPNetworking#Home_Computer)
-      2. [Host Computer on a LAN](https://kernelnewbies.org/Documents/LinuxIPNetworking#Host_Computer_on_a_LAN)
-      3. [Network Routing Computer](https://kernelnewbies.org/Documents/LinuxIPNetworking#Network_Routing_Computer)
-   4. Linux and Network Program Functions
-      1. [ifconfig](https://kernelnewbies.org/Documents/LinuxIPNetworking#ifconfig-1)
-      2. [route](https://kernelnewbies.org/Documents/LinuxIPNetworking#route-1)
-4. Connections
-   1. [Overview](https://kernelnewbies.org/Documents/LinuxIPNetworking#Overview-1)
-   2. [Socket Structures](https://kernelnewbies.org/Documents/LinuxIPNetworking#Socket_Structures)
-   3. [Sockets and Routing](https://kernelnewbies.org/Documents/LinuxIPNetworking#Sockets_and_Routing)
-   4. Connection Processes
-      1. [Establishing Connections](https://kernelnewbies.org/Documents/LinuxIPNetworking#Establishing_Connections)
-      2. [Socket Call Walk-Through](https://kernelnewbies.org/Documents/LinuxIPNetworking#Socket_Call_Walk-Through)
-      3. [Connect Call Walk-Through](https://kernelnewbies.org/Documents/LinuxIPNetworking#Connect_Call_Walk-Through)
-      4. [Closing Connections](https://kernelnewbies.org/Documents/LinuxIPNetworking#Closing_Connections)
-      5. [Close Walk-Through](https://kernelnewbies.org/Documents/LinuxIPNetworking#Close_Walk-Through)
-   5. [Linux Functions](https://kernelnewbies.org/Documents/LinuxIPNetworking#Linux_Functions)
-5. Sending Messages
-   1. [Overview](https://kernelnewbies.org/Documents/LinuxIPNetworking#Overview-2)
-   2. Sending Walk-Through
-      1. [Writing to a Socket](https://kernelnewbies.org/Documents/LinuxIPNetworking#Writing_to_a_Socket)
-      2. [Creating a Packet with UDP](https://kernelnewbies.org/Documents/LinuxIPNetworking#Creating_a_Packet_with_UDP)
-      3. [Creating a Packet with TCP](https://kernelnewbies.org/Documents/LinuxIPNetworking#Creating_a_Packet_with_TCP)
-      4. [Wrapping a Packet in IP](https://kernelnewbies.org/Documents/LinuxIPNetworking#Wrapping_a_Packet_in_IP)
-      5. [Transmitting a Packet](https://kernelnewbies.org/Documents/LinuxIPNetworking#Transmitting_a_Packet)
-   3. [Linux Functions](https://kernelnewbies.org/Documents/LinuxIPNetworking#Linux_Functions-1)
-6. Receiving Messages
-   1. [Overview](https://kernelnewbies.org/Documents/LinuxIPNetworking#Overview-3)
-   2. Receiving Walk-Through
-      1. [Reading from a Socket (Part I)](https://kernelnewbies.org/Documents/LinuxIPNetworking#Reading_from_a_Socket_.28Part_I.29)
-      2. [Receiving a Packet](https://kernelnewbies.org/Documents/LinuxIPNetworking#Receiving_a_Packet)
-      3. [Running the Network "Bottom Half"](https://kernelnewbies.org/Documents/LinuxIPNetworking#Running_the_Network_.22Bottom_Half.22)
-      4. [Unwrapping a Packet in IP](https://kernelnewbies.org/Documents/LinuxIPNetworking#Unwrapping_a_Packet_in_IP)
-      5. [Accepting a Packet in UDP](https://kernelnewbies.org/Documents/LinuxIPNetworking#Accepting_a_Packet_in_UDP)
-      6. [Accepting a Packet in TCP](https://kernelnewbies.org/Documents/LinuxIPNetworking#Accepting_a_Packet_in_TCP)
-      7. [Reading from a Socket (Part II)](https://kernelnewbies.org/Documents/LinuxIPNetworking#Reading_from_a_Socket_.28Part_II.29)
-   3. [Linux Functions](https://kernelnewbies.org/Documents/LinuxIPNetworking#Linux_Functions-2)
-7. IP Forwarding
-   1. [Overview](https://kernelnewbies.org/Documents/LinuxIPNetworking#Overview-4)
-   2. IP Forward Walk-Through
-      1. [Receiving a Packet](https://kernelnewbies.org/Documents/LinuxIPNetworking#Receiving_a_Packet-1)
-      2. [Running the Network "Bottom Half"](https://kernelnewbies.org/Documents/LinuxIPNetworking#Running_the_Network_.22Bottom_Half.22-1)
-      3. [Examining a Packet in IP](https://kernelnewbies.org/Documents/LinuxIPNetworking#Examining_a_Packet_in_IP)
-      4. [Forwarding a Packet in IP](https://kernelnewbies.org/Documents/LinuxIPNetworking#Forwarding_a_Packet_in_IP)
-      5. [Transmitting a Packet](https://kernelnewbies.org/Documents/LinuxIPNetworking#Transmitting_a_Packet-1)
-   3. [Linux Functions](https://kernelnewbies.org/Documents/LinuxIPNetworking#Linux_Functions-3)
-8. Basic Internet Protocol Routing
-   1. [Overview](https://kernelnewbies.org/Documents/LinuxIPNetworking#Overview-5)
-   2. Routing Tables
-      1. [The Neighbor Table](https://kernelnewbies.org/Documents/LinuxIPNetworking#The_Neighbor_Table)
-      2. [The Forwarding Information Base](https://kernelnewbies.org/Documents/LinuxIPNetworking#The_Forwarding_Information_Base)
-      3. [The Routing Cache](https://kernelnewbies.org/Documents/LinuxIPNetworking#The_Routing_Cache)
-      4. [Updating Routing Information](https://kernelnewbies.org/Documents/LinuxIPNetworking#Updating_Routing_Information)
-   3. [Linux Functions](https://kernelnewbies.org/Documents/LinuxIPNetworking#Linux_Functions-4)
-9. Dynamic Routing with routed
-   1. [Overview](https://kernelnewbies.org/Documents/LinuxIPNetworking#Overview-6)
-   2. How routed works
-      1. [Data Structures](https://kernelnewbies.org/Documents/LinuxIPNetworking#Data_Structures)
-      2. [Initialization](https://kernelnewbies.org/Documents/LinuxIPNetworking#Initialization)
-      3. [Normal Operations](https://kernelnewbies.org/Documents/LinuxIPNetworking#Normal_Operations)
-   3. [routed Functions](https://kernelnewbies.org/Documents/LinuxIPNetworking#routed_Functions)
-10. Editing Linux Source Code
-    1. [The Linux Source Tree](https://kernelnewbies.org/Documents/LinuxIPNetworking#The_Linux_Source_Tree)
-    2. Using EMACS Tags
-       1. [Referencing with Tags](https://kernelnewbies.org/Documents/LinuxIPNetworking#Referencing_with_Tags)
-       2. [Constructing TAGS File](https://kernelnewbies.org/Documents/LinuxIPNetworking#Constructing_TAGS_File)
-    3. [Using vi Tags](https://kernelnewbies.org/Documents/LinuxIPNetworking#Using_vi_Tags)
-    4. [Rebuilding the Kernel](https://kernelnewbies.org/Documents/LinuxIPNetworking#Rebuilding_the_Kernel)
-    5. [Patching the Kernel Source](https://kernelnewbies.org/Documents/LinuxIPNetworking#Patching_the_Kernel_Source)
-11. Linux Modules
-    1. [Overview](https://kernelnewbies.org/Documents/LinuxIPNetworking#Overview-7)
-    2. Writing, Installing and Removing Modules
-       1. [Writing Modules](https://kernelnewbies.org/Documents/LinuxIPNetworking#Writing_Modules)
-       2. [Installing and Removing Modules](https://kernelnewbies.org/Documents/LinuxIPNetworking#Installing_and_Removing_Modules)
-    3. [Example](https://kernelnewbies.org/Documents/LinuxIPNetworking#Example)
-12. The proc File System
-    1. [Overview](https://kernelnewbies.org/Documents/LinuxIPNetworking#Overview-8)
-    2. [Network proc Files](https://kernelnewbies.org/Documents/LinuxIPNetworking#Network_proc_Files)
-    3. Registering prof Files
-       1. [Formatting a Function to Provide Information](https://kernelnewbies.org/Documents/LinuxIPNetworking#Formatting_a_Function_to_Provide_Information)
-       2. [Building a proc Entry](https://kernelnewbies.org/Documents/LinuxIPNetworking#Building_a_proc_Entry)
-       3. [Registering a proc Entry](https://kernelnewbies.org/Documents/LinuxIPNetworking#Registering_a_proc_Entry)
-       4. [Unregistering a proc Entry](https://kernelnewbies.org/Documents/LinuxIPNetworking#Unregistering_a_proc_Entry)
-    4. [Example](https://kernelnewbies.org/Documents/LinuxIPNetworking#Example-1)
-13. Example Packet Dropper
-    1. [Overview](https://kernelnewbies.org/Documents/LinuxIPNetworking#Overview-9)
-    2. [Considerations](https://kernelnewbies.org/Documents/LinuxIPNetworking#Considerations)
-    3. [Experimental Systems and Benchmarks](https://kernelnewbies.org/Documents/LinuxIPNetworking#Experimental_Systems_and_Benchmarks)
-    4. Results and Preliminary Analysis
-       1. [Standard Kernel](https://kernelnewbies.org/Documents/LinuxIPNetworking#Standard_Kernel)
-       2. [Modified Kernel Dropping Packets](https://kernelnewbies.org/Documents/LinuxIPNetworking#Modified_Kernel_Dropping_Packets)
-       3. [Prelimiary Analysis](https://kernelnewbies.org/Documents/LinuxIPNetworking#Prelimiary_Analysis)
-    5. Code
-       1. [Kernel](https://kernelnewbies.org/Documents/LinuxIPNetworking#Kernel)
-       2. [Module](https://kernelnewbies.org/Documents/LinuxIPNetworking#Module)
-14. Additional Resources
-    1. [Internet Sites](https://kernelnewbies.org/Documents/LinuxIPNetworking#Internet_Sites)
-    2. [Books](https://kernelnewbies.org/Documents/LinuxIPNetworking#Books)
-15. [Acronyms](https://kernelnewbies.org/Documents/LinuxIPNetworking#Acronyms)
-
-
-
-**Chapter 1**
 
 
 
@@ -197,13 +62,10 @@ Generic entries or variables (such as an output filename) and comments are writt
 
 There are numerous examples in this document that help clarify the presented material. For the sake of consistency and familiarity, most of them reference the sample network shown in [Figure 1.1](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig1.1).
 
+![](/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=i_example.png)
 
-
-| ![i_example.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=i_example.png) |
-| ------------------------------------------------------------ |
-| Figure 1.1: Sample network structure.                        |
-
-
+| Figure 1.1: Sample network structure. |
+| :-----------------------------------: |
 
 This network represents the computer system at a fictional unnamed University (U!). It has a router connected to the Internet at large (`chrysler`). That machine is connected (through the `jeep` interface) to the campus-wide network, `u.edu`, consisting of computers named for Chrysler owned car companies (`dodge`, `eagle`, etc.). There is also a LAN subnet for the computer science department, `cs.u.edu`, whose hosts are named after Dodge vehicle models (`stealth`, `neon`, etc.). They are connected to the campus network by the `dodge/viper` computer. Both the `u.edu` and `cs.u.edu` networks use Ethernet hardware and protocols.
 
@@ -272,13 +134,9 @@ This chapter presents an overview of the entire Linux messaging system. It provi
 
 The Internet Protocol (IP) is the heart of the Linux messaging system. While Linux (more or less) strictly adheres to the layering concept - and it is possible to use a different protocol (like ATM) - IP is almost always the nexus through which packets flow. The IP implementation of the network layer performs routing and forwarding as well as encapsulating data. See [Figure 2.1](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig2.1) for a simplified diagram of how network packets move through the Linux kernel.
 
+![](/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=o_path.png)
 
-
-| ![o_path.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=o_path.png) |
-| ------------------------------------------------------------ |
-| Figure 2.1: Abstraction of the Linux message traffic path.   |
-
-
+Figure 2.1: Abstraction of the Linux message traffic path.
 
 When an application generates traffic, it sends packets through sockets to a transport layer (TCP or UDP) and then on to the network layer (IP). In the IP layer, the kernel looks up the route to the host in either the routing cache or its Forwarding Information Base (FIB). If the packet is for another computer, the kernel addresses it and then sends it to a link layer output interface (typically an Ethernet device) which ultimately sends the packet out over the physical medium.
 
@@ -312,13 +170,9 @@ Applications, run in user space, form the top level of the protocol stack; they 
 
 The key to maintaining the strict layering of protocols without wasting time copying parameters and payloads back and forth is the common packet data structure (a socket buffer, or `sk_buff` - Figure 2.2). Throughout all of the various function calls as the data makes it way through the protocols, the payload data is copied only twice; once from user to kernel space and once from kernel space to output medium (for an outbound packet).
 
+![](/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=o_skbuff-1677499004880-12.png)
 
-
-| ![o_skbuff.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=o_skbuff.png) |
-| ------------------------------------------------------------ |
-| Figure 2.2: Packet (`sk_buff`) structure.                    |
-
-
+Figure 2.2: Packet (`sk_buff`) structure.
 
 This structure contains pointers to all of the information about a packet - its socket, device, route, data locations, etc. Transport protocols create these packet structures from output buffers, while device drivers create them for incoming data. Each layer then fills in the information that it needs as it processes the packet. All of the protocols - transport (TCP/UDP), internet (IP), and link level (Ethernet) - use the same socket buffer.
 
@@ -1107,13 +961,9 @@ This chapter presents the sending side of message trafficking. It provides an ov
 
 
 
+![](/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=s_tx-1677499128270-14.png)
 
-
-| ![s_tx.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=s_tx.png) |
-| ------------------------------------------------------------ |
-| Figure 5.1: Message transmission.                            |
-
-
+Figure 5.1: Message transmission.
 
 An outgoing message begins with an application system call to write data to a socket. The socket examines its own connection type and calls the appropriate send routine (typically INET). The send function verifies the status of the socket, examines its protocol type, and sends the data on to the transport layer routine (such as TCP or UDP). This protocol creates a new buffer for the outgoing packet (a socket buffer, or `struct sk_buff skb`), copies the data from the application buffer, and fills in its header information (such as port number, options, and checksum) before passing the new buffer to the network layer (usually IP). The IP send functions fill in more of the buffer with its own protocol headers (such as the IP address, options, and checksum). It may also fragment the packet if required. Next the IP layer passes the packet to the link layer function, which moves the packet onto the sending device's `xmit` queue and makes sure the device knows that it has traffic to send. Finally, the device (such as a network card) tells the bus to send the packet.
 
@@ -1301,7 +1151,7 @@ This chapter presents the receiving side of message trafficking. It provides an 
 
 
 
-
+![](/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=r_rx-1677499281736-15.png)
 
 | ![r_rx.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=r_rx.png) |
 | ------------------------------------------------------------ |
