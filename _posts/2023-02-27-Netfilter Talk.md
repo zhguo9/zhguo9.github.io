@@ -1,0 +1,262 @@
+---
+title: Netfilter Talk
+typora-root-url: ./
+tags: subsystem
+---
+
+```
+   1 <LaForge> I'm going to talk this evening about netfilter
+   2 <LaForge> netfilter is the packet filtering / packet mangling / NAT framework of the Linux 2.4 kernel series
+   3 <LaForge> Some slides and a script for this talk are avaliable at http://www.gnumonks.org/papers/netfilter-lk2000
+   4 <LaForge> I expect the autitorium to be familiar with TCP/IP basics, as well as being familiar with iptables and packet filtering in general
+   5 <LaForge> oops... ipchains of course :)
+   6 <LaForge> in other words: You should know how the 2.2 packet filtering (ipchains) works ;)
+   7 <LaForge> first a bit of an introduction:
+   8 <LaForge> What is netfilter?
+   9 <LaForge> Netfilter is a generalized framework of hooks in the network stack
+  10 <LaForge> any kernel module can plug into one or more of these hooks an will receive each packet traversing this hook
+  11 <LaForge> the netfilter hooks are currently implemented for IPv4, IPv6 and DECnet.
+  12 <LaForge> (i've heared recently, that somebody wants to implement them for IPX, too)
+  13 <LaForge> these hooks are placed in well-chosen points of the protocol stack.
+  14 <LaForge> The traditional packet filtering, as well as all kinds of network address translation and packet mangling are implemented on top of these hooks.
+  15 <LaForge> so netfilter is definitely more than a firewalling subsystem - it's a superset of that.
+  16 <LaForge> The next introductory question is: 
+  17 <LaForge> Why did we need netfilter?
+  18 <LaForge> Because the old 2.2 code was way too complex
+  19 <LaForge> it was scattered around the whole IPv4 code
+  20 <LaForge> there were about 25 places in the IPv4 code, where we had a #ifdef CONFIG_IP_FIREWALL  ... #else ... #endif 
+  21 <LaForge> which is quite bad.
+  22 <LaForge> furthermore, all packet handling had to be done in kernel
+  23 <LaForge> masquerading was a hack to the packet filtering code
+  24 <LaForge> and the filtering rules are bound to interface addresses.
+  25 <LaForge> The 2.2 code was not very extensible, you could only write masquerading helper modules like ip_masq_irc / ip_masq_ftp / ...
+  26 <LaForge> ... now to the last part of the introduction:
+  27 <LaForge> Who did netfilter?
+  28 <LaForge> The main part of netfilter design and implementation was done by Rusty Russel
+  29 <LaForge> Rusty is also the co-author of ipchains and Linux Kernel Firewall Maintainer for the last years.
+  30 <LaForge> He got sponsored for one year to concentrate on the firewalling code - and the result was netfilter
+  31 <LaForge> Some other people joined him in different stages of the development: Marc Boucher, James Morris and the last one is myself.
+  32 <LaForge> The 'formal' core team consists out of us four people. Of course there are numoerous other contributors, you can see them at http://netfilter.kernelnotes.org/scoreboard.html
+  33 <LaForge> So let's begin the main part of this presentation:
+  34 <LaForge> PART 1 - netfilter basics
+  35 <LaForge> I was talking about these hooks at particular points in the network stack.
+  36 <LaForge> I'm going to concentrate on IPv4, as this seems to be the most important case :)
+  37 <LaForge>    --->[1]--->[ROUTE]--->[3]--->[4]--->
+  38 <LaForge>                      |            ^
+  39 <LaForge>                      |            |
+  40 <LaForge>                      |         [ROUTE]
+  41 <LaForge>                      v            |
+  42 <LaForge>                     [2]          [5]
+  43 <LaForge>                      |            ^
+  44 <LaForge>                      |            |
+  45 <LaForge>                      v            |
+  46 <LaForge>  
+  47 <LaForge> on the left hand, you have incoming packets, coming from the network
+  48 <LaForge> on the right hand, outgoing packets are leaving to the network
+  49 <LaForge> on the bottom of the picture is our local machine, the local userspace processes.
+  50 <LaForge> the 5 hooks are called:
+  51 <LaForge> 1 NF_IP_PRE_ROUTING
+  52 <LaForge> 2 NF_IP_LOCAL_IN
+  53 <LaForge> 3 NF_IP_FORWARD
+  54 <LaForge> 4 NF_IP_POST_ROUTING
+  55 <LaForge> 5 NF_IP_LOCAL_OUT
+  56 <LaForge> so let's view at the path a packet goes while being forwarded by our machine:
+  57 <LaForge> Firs it comes off the wire, it passes hook #1. The routing decision is made,
+  58 <LaForge> it passes hook #3 (forward), passes hook #4 (post_routing) and leaves off to the network again.
+  59 <LaForge> If we look on packets which have a local destionation (are locally terminated an are not routed), the following path:
+  60 <LaForge> packet comes off the wire
+  61 <LaForge> packet hits hook #1 (pre_routing)
+  62 <LaForge> routing decision decides that packet is local
+  63 <LaForge> packet hits hook #2 (local_in)
+  64 <LaForge> packet hits local process
+  65 <LaForge>  
+  66 <LaForge> If we look at a locally-originated packet:
+  67 <LaForge> packet is generated by local process at the bottom
+  68 <LaForge> packet hits hook #5 (local_out)
+  69 <LaForge> routing code decides where to route the packet
+  70 <LaForge> packet passes hook #4 (post_routing)
+  71 <LaForge> packet hits the wire of the network
+  72 <LaForge> (btw: i want to concentrate on the talk and handle questions after the talk, this way i can concentrate on the talk...)
+  73 <LaForge> (anyway, you can collect the questions at #qc, if you want)
+  74 <LaForge> Now we know how packets traverse the netfilter hooks
+  75 <LaForge> As I said, any kernel module may register on one or more of these hooks, and a callback-function is called for each packet passing this particular hook
+  76 <LaForge> the module may then return a verdict about the packet's future:
+  77 <LaForge> NF_ACCEPT = continue traversal as normal
+  78 <LaForge> NF_DROP = drop the packet silently, do not continue
+  79 <LaForge> NF_STOLEN = I (as the hook-registered module) have taken over the packet, do not continue
+  80 <LaForge> NF_QUEUE = enqueue packet to userspace (i'm going to say more about this later)
+  81 <LaForge> NF_REPEAT = please call this hook again
+  82 <LaForge> packet filtering / NAT / packet mangling is implemented using IP tables on each of these netfilter hooks.
+  83 <LaForge> IP TABLES:
+  84 <LaForge> IP tables are tables of rules, which a packet traverses from top to bottom
+  85 <LaForge> each rule in an IP table consists out of matches, which specify how the packet must look like, if it is to match this rule
+  86 <LaForge> and one target, which tells us what to do if this particular rule matches.
+  87 <LaForge> IP tables are implemented as reusable component - in fact, netfilter it self uses currently three instances of IP tables.
+  88 <LaForge> But any other kernel module may also use IP tables (for example as an IPsec SPDB)
+  89 <LaForge> The three tables implemented in netfilter itself are: 'filter', 'nat' and 'mangle'
+  90 <LaForge> Connectiontracking:
+  91 <LaForge> Connection tracking is another part, which is implemented on top of the netfileter hooks.
+  92 <LaForge> conntrack enables us to do stateful firewalling. That is: Decide upon the fate of a packet not only by data from this packet, but also by information about the state of the connection the packet belongs to.
+  93 <LaForge> i'm going to say more about connection tracking later.
+  94 <LaForge> First I want to talk about the three IP tables:
+  95 <LaForge> PART II - packet filtering
+  96 <LaForge> Packet filtering is implemented using the three hooks NF_IP_LOCAL_IN
+  97 <LaForge> NF_IP_FORWAD and NF_IP_LOCAL_OUT
+  98 <LaForge> each packet passes only one of these three hooks:
+  99 <LaForge> locally originated packets traverse only NF_IP_LOCAL_OUT
+ 100 <LaForge> locally terminated packets traverse only NF_IP_LOCAL_IN
+ 101 <LaForge> and forwarded packets traverse only NF_IP_FORWARD
+ 102 <LaForge> the 'filter' table connects one chain to each of these three hooks:
+ 103 <LaForge> NF_IP_LOCAL_IN = INPUT chain
+ 104 <LaForge> NF_IP_LOCAL_OUT = OUTPUT chian
+ 105 <LaForge> NF_IP_FORWARD = FORWARD chain
+ 106 <LaForge> (the names are the same as in 2.2 - only uppercase)
+ 107 <LaForge> but BE AWARE: the behaviour which packet traverses which chain has changed from the 2.2 behaviour
+ 108 <LaForge> i.e. a forwarded packet only hits the FORWARD chain, _not_ INPUT and OUTPUT also
+ 109 <LaForge> to know how we insert filtering rules in the chains of the 'filter' table, we have to examine the IP tables a bit further
+ 110 <LaForge> As I said, the IP tables are implemented very generic, so there's one userspace tool, which is able to configure/modify all kindes of tables/chains
+ 111 <LaForge> each rule in a chain consists out of 
+ 112 <LaForge> - match(es) which specify things like source address, destination address, port numbers, ...
+ 113 <LaForge> - target (what to do if this rule matches)
+ 114 <LaForge> To configure these rules, we have the tool called 'iptables'
+ 115 <LaForge> I'm going to explain some of the iptables commands:
+ 116 <LaForge> To fully specify an iptables command, we need the following information:
+ 117 <LaForge> - which table to work on
+ 118 <LaForge> - which chain in this table to use
+ 119 <LaForge> - the operation (append, insert , delete, modify, )
+ 120 <LaForge> - at least one match 
+ 121 <LaForge> - and exactly one target
+ 122 <LaForge> the syntax is something like:
+ 123 <LaForge> iptables - t table -Operation chain -j target match(es)
+ 124 <LaForge> to give a very basic example:
+ 125 <LaForge> iptables -t filter -A INPUT -j ACCEPT -p tcp --dport smtp
+ 126 <LaForge> which -A(ppend)s a rule to the INPUT chain of the 'filter' table 
+ 127 <LaForge> and the rule itself ACCEPTs all tcp packets which have a destination port of 25 (smtp)
+ 128 <LaForge> now we have to know what matches and targets we have available
+ 129 <LaForge> as targets, we have :
+ 130 <LaForge> ACCEPT - accept the packet
+ 131 <LaForge> DROP - silently drop the packet (this is the 2.2 DENY)
+ 132 <LaForge> QUEUE - queue the packet to an userspace process 
+ 133 <LaForge> RETURN - return to previous (calling) chain
+ 134 <LaForge> foobar - jump to an userdefined chain
+ 135 <LaForge> REJECT - drop the packet and inform the sender about it
+ 136 <LaForge> LOG - log the packet via syslog, continue traversal
+ 137 <LaForge> ULOG - send the packet to an userspace logging process 
+ 138 <LaForge> MIRROR - change source/destination IP and resend the packet (for testing purpose)
+ 139 <LaForge> now the available matches:
+ 140 <LaForge> -p protocol (tcp/udp/icmp/...)
+ 141 <LaForge> -s source address
+ 142 <LaForge> -d destination address
+ 143 <LaForge> -i incoming interface
+ 144 <LaForge> -o outgoing interface
+ 145 <LaForge> --dport destination port
+ 146 <LaForge> --sport source port
+ 147 <LaForge> --state (NEW,ESTABLISHED,RELATED,INVALID) (i'm comming back to that)
+ 148 <LaForge> --mac-source source MAC address
+ 149 <LaForge> --mark nfmark value
+ 150 <LaForge> --tos TOS value of the packet
+ 151 <LaForge> --ttl ttl value of the packet
+ 152 <LaForge> --limit (limit the rate of this packet to a certain amount of pkts/timeframe)
+ 153 <LaForge>  
+ 154 <LaForge> knowing about the matches and targets, you are now able to configure your packet filter.
+ 155 <LaForge> I'm coming back to the connection tracking stuff
+ 156 <LaForge> this is a real advantage of the new 2.4 code:
+ 157 <LaForge> stateful firewalling
+ 158 <LaForge> the connection tracking code keeps track of all current connections going through our router/firewall
+ 159 <LaForge> each packet is assigned one of the state values:
+ 160 <LaForge> NEW (packet would establish a new connection, if we let it pass)
+ 161 <LaForge> ESTABLISHED (packet is part of an already established connection)
+ 162 <LaForge> RELATED (packet is somehow related to an already established connection)
+ 163 <LaForge> INVALID (packet is multicast or something else whe really don't know what it is
+ 164 <LaForge> so now we could do something like:
+ 165 <LaForge> iptables -A FORWARD -j ACCEPT -m state --state ESTABLISHED,RELATED
+ 166 <LaForge> which lets only all packets belonging to an already established connection and the related ones pass.
+ 167 <LaForge> if we now block all NEW packets from the 'outer' interface (internet)
+ 168 <LaForge> and allow NEW packets from the inside interface, we'll have the basic config of most firewalls
+ 169 <LaForge> so how does this differ from blocking packets which have the SYN flag set?
+ 170 <LaForge> connection tracking is generic and currently handles TCP, UDP and ICMP
+ 171 <LaForge> so for example we don't accept icmp echo replies, if we didn't send an icmp echo request before
+ 172 <LaForge> the connection tracking is extensible in two ways:
+ 173 <LaForge> - application helper modules (like ip_conntrack_ftp, ip_conntrack_irc) for specific protocols
+ 174 <LaForge> - protocol helper modules (for tracking the state of other protocols than tcp/udp/icmp)
+ 175 <LaForge> the ip_contrack_ftp for example marks all incoming ftp data connections as RELATED
+ 176 <LaForge> now we can do active ftp through a firewall which doesn't have to accept all connections to internal ip's with ports > 1024 anymore!
+ 177 <LaForge> ok... time for the next parT:
+ 178 <LaForge> PART III - NAT
+ 179 <LaForge> in 2.2 we only had the masquerading code, which deals with a special case of NAT (network address translation)
+ 180 <LaForge> in 2.4 we have all kinds of differnet nat:
+ 181 <LaForge> SNAT (source address NAT), and MASQUERADE as a special case of that
+ 182 <LaForge> DNAT (destination address NAT), and REDIRECT as a special case 
+ 183 <LaForge> source nat is done at the POST_ROUTING hook
+ 184 <LaForge> destination nat is done at the PRE_ROUTING hook
+ 185 <LaForge> i'll begin with a small example of SNAT:
+ 186 <LaForge> iptables -t nat -A POSTROUTING -j SNAT --to-source 1.2.3.4 -o eth0
+ 187 <LaForge> this will NAT all packets to be sent out on eth0 to the new source address of 1.2.3.4
+ 188 <LaForge> (it of course does the inverse mapping for the reply packets)
+ 189 <LaForge> SNAT is useful for NAT cases, where you have a statically assigned IP address.
+ 190 <LaForge> If your outgoing interfaces has a dynamically assigned IP address, you may use the MASQUERADE target.
+ 191 <LaForge> iptables -t nat -A POSTROUTING -j MASQUERADE -o ppp0
+ 192 <LaForge> is an example for masqing all traffic on interface ppp0.
+ 193 <LaForge> the address to which the packets are nat'ed is the interface address of ppp0
+ 194 <LaForge> it's always the current address of ppp0, so IP address changes don't need any special handling.
+ 195 <LaForge> The next part is DNAT:
+ 196 <LaForge> small example:
+ 197 <LaForge> iptables -t nat -A PREROUTING -j DNAT --to-destination 1.2.3.4:8080 -t tcp --dport 80 -i eth0
+ 198 <LaForge> which NAT's all tcp packets, coming through interface eth0 and going to a webserver to 1.2.3.4:808
+ 199 <LaForge> 8080 of coruse
+ 200 <LaForge> this is quite useful if you want to do transparent www proxying
+ 201 <LaForge> REDIRECT is a special case of DNAT:
+ 202 <LaForge> iptables -t nat -A PREROUTING -j REDIRECT --to-port 3128 -i eth1 -p tcp --dport 80
+ 203 <LaForge> all tcp packets from eth1 going to any webserver on port 80 are redirected to a proxy running on the local machine
+ 204 <LaForge> PART IV - Packet mangling
+ 205 <LaForge> this is something really new, which 2.2.x code didn't have at all
+ 206 <LaForge> the 'mangle' table lets you mangle any arbitrary information inside the packets while they pass our local machine
+ 207 <LaForge> currently we have only three targets implemented:
+ 208 <LaForge> TOS - change the TOS bit field in the header
+ 209 <LaForge> TTL - change the TTL field in the header (increment/decrement/set)
+ 210 <LaForge> MARK - set the packet's skb->nfmark fielt to a particular value
+ 211 <LaForge> of course you can again use all the matches available for packet filtering and nat.
+ 212 <LaForge> a simple example:
+ 213 <LaForge> iptables -t mangle -A PREROUITING -j MARK --set-mark 10 -p tcp --dport 80
+ 214 <LaForge> which set's the nfmark field of each packet's skb to 10, if it is tcp and has a destination port of 9-
+ 215 <LaForge> 80
+ 216 <LaForge> all matches and targets are implemented as separate modules, so you can at any time write new match and/or target modules 
+ 217 <LaForge> There are two more 'advanced concepts' of netfilter, I want to introduce:
+ 218 <LaForge> - Queuing
+ 219 <LaForge> if you have a rule, which has the target QUEUE, the packet is inserted into a special queue inside netfilter
+ 220 <LaForge> the packets in this queue are transmitted over a netlink socket to a userspace process.
+ 221 <LaForge> this userspace process can now do whatever it wans with the packet (including its data) and re-inject it at exactly the place it came from
+ 222 <LaForge> the process can (of course) also set the verdict of this packet (like: DROP this packet, ACCEPT the other one)
+ 223 <LaForge> this enables people to write some firewalling code in userspace, and (hopefully) keeps the kernel clean from too complex code.
+ 224 <LaForge> - Userspace logging
+ 225 <LaForge> Very similar to queuing, although it is unidirectional
+ 226 <LaForge> if you insert a rule with the ULOG target, the packet is copied and sent through a netlink multicast socket
+ 227 <LaForge> one or more userspace processes may listen to this netlink multicast socket and receive the copy of the packet
+ 228 <LaForge> the userspace process may now gather all information it needs and log it to a logfile/database/whatever
+ 229 <LaForge> we've already implemented ulogd, which is a plugin-extensible logging daemon attaching to the ULOG target
+ 230 <LaForge> So.... we are heading the end of my talk.... last chapter:
+ 231 <LaForge> Current development and future:
+ 232 <LaForge> - full TCP sequence number tracking
+ 233 <LaForge> - port more matches/targets to IPv6
+ 234 <LaForge> - support for more application protocol helpers for NAT (RPC, SMB, SNMP, ...)
+ 235 <LaForge> - more matches (like 'accept all packets as long as the number of connections to this port doesn't raise about N)
+ 236 <LaForge> - multicast support
+ 237 <LaForge> - infrastructure for having conntrack and nat helpers in userspace
+ 238 <LaForge>  
+ 239 <LaForge> At the end some useful links:
+ 240 <LaForge> This presentation: 
+ 241 <LaForge> http://www.gnumonks.org/papers/netfilter-lk2000
+ 242 <LaForge> netfilter homepage: http://netfilter.kernelnotes.org
+ 243 <LaForge> links to the mailinglist(s) and the archives, as well as the iptables userspace tool are on the netfilter homepage
+ 244 <LaForge> we also have a bunch of documents you might be interested in: The 2.4 packet filtering howto, the 2.4 NAT howto, the netfilter hacking howto, and some more stuff
+ 245 <LaForge> everything should be linked from the netfilter homepage
+ 246 <Blu3> Thank you, it was very informative :)
+ 247 <LaForge> Thanks for your interest in this talk... I'll deal with questions now
+ 248 ----
+ 249 CategoryDocs
+ 250 
+```
+
+
+> Happy Hacking !
+

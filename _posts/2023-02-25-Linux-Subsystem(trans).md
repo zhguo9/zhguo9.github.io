@@ -34,33 +34,21 @@ We have already said that a task in kernel space cannot have the CPU scheduled a
 
 **Remember, to the scheduler and the kernel at large, every schedulable object (i.e. anything that can be chosen by the `schedule()` routine) is known as a task.** No distinction is made between any of these objects, so what are often called processes, LWPs, kernel threads, fibers, threads, etc. are **all** just tasks to the kernel, each of them with their own particular characteristics. This is a big win in terms of kernel cleanliness - there is no real reason to separate the cases out, so why bother ?
 
-These characteristics are particularly interesting though. For example some tasks may have user space memory mappings and stack - a typical example being a user space process. The term *process context* is used to refer to one of these tasks executing in kernel space - they have both user space mappings, and the (possibly temporary) kernel mappings and stack. In this context copying to and from user memory makes sense.
+These characteristics are particularly interesting though. For example some tasks may have user space memory mappings and stack - a typical example being a user space process. **The term *process context* is used to refer to one of these tasks executing in kernel space - they have both user space mappings, and the (possibly temporary) kernel mappings and stack.** In this context copying to and from user memory makes sense.
 
-Once again, what are sometimes known as "kernel threads" or "fibers" are not treated differently from other tasks. They may have user-space memory mappings just like "normal" processes. The only distinguishing feature here is that the code executed by the kernel thread comes from the kernel or module image, rather than from binary process images.
+**Once again, what are sometimes known as "kernel threads" or "fibers" are not treated differently from other tasks.** They may have user-space memory mappings just like "normal" processes. **The only distinguishing feature here is that the code executed by the kernel thread comes from the kernel or module image, rather than from binary process images.**
 
-The term *interrupt context* is often used to mean code currently executing as a result of a hardware interrupt. This encompasses bottom halves, ISRs, softirqs, and tasklets. Here there is no associated task as such so it is meaningless to schedule (and in fact a panicking bug). This also means that you cannot sleep here, as this implies a schedule.
-
-
+**The term *interrupt context* is often used to mean code currently executing as a result of a hardware interrupt.** This encompasses bottom halves, ISRs, softirqs, and tasklets. Here there is no associated task as such so it is meaningless to schedule (and in fact a panicking bug). This also means that you cannot sleep here, as this implies a schedule.
 
 ## Scheduling algorithm
 
-
-
-The scheduler has a problem - there is a direct contradiction between latency/fairness (allowing each task to run as soon as possible) and the cost of a context switch (the operations necessary for changing from one task to another). Too much time given to each task means that processes will have to wait longer for the CPU - this is not good if one of the processes is trying to provide interactive facilities, for example. Switch too often and too much time is taken up with the switching, leaving less CPU for actually doing something useful. Each pre-emptible task is allocated a timeslice - a smallish period of time which it is allowed to run for. The timer interrupt is invoked periodically and it will decide if the task should be pre-empted in favour of another task on the runqueue (the runqueue is a queue of all tasks that are ready to run). Additionally, scheduling can happen when requested by kernel code, and also after system calls are finished, on the return path from the kernel system call code to user-space. More detail can be found [here](http://www.ora.com/catalog/linuxkernel/chapter/ch10.html).
-
-
+The scheduler has a problem - there is a direct contradiction between latency/fairness (allowing each task to run as soon as possible) and the cost of a context switch (the operations necessary for changing from one task to another). Too much time given to each task means that processes will have to wait longer for the CPU - this is not good if one of the processes is trying to provide interactive facilities, for example. Switch too often and too much time is taken up with the switching, leaving less CPU for actually doing something useful. Each pre-emptible task is allocated a timeslice - a smallish period of time which it is allowed to run for. **The timer interrupt is invoked periodically and it will decide if the task should be pre-empted in favour of another task on the runqueue (the runqueue is a queue of all tasks that are ready to run).** Additionally, scheduling can happen when requested by kernel code, and also after system calls are finished, on the return path from the kernel system call code to user-space. More detail can be found [here](http://www.ora.com/catalog/linuxkernel/chapter/ch10.html).
 
 ### Some code
 
-
-
-FIX``ME
-
-
+FIX ME
 
 ## Locking and Scheduling
-
-
 
 We have already mentioned that kernel tasks cannot be pre-empted unless they choose to allow it, at well-known points (such as a `kmalloc()` call of priority `GFP_KERNEL`). But on SMP systems, this still means that several tasks can be running in kernel space at the same time (additionaly protection is also needed against interrupts, even on UP systems). An obvious consequence is that tasks will need to be "synchronised", i.e. shared resources must be given exclusively to a task altering those resources. A lack of proper synchronisation of shared resources is known as a "race condition" - named from the notion that one task can "race" with another to access the resource. This is fairly obviously a bad thing. One of the synchronisation mechanisms is the *spinlock*. This is simply a data structure which is acquired atomically, and can only be held by one task at a time. The spinlock is held over the critical region (the code section that modifies the shared resource from one "known state" to another). If a task tries to acquire an already held spinlock (with `spin_lock(&lock)` or similar function) it will "spin", i.e. execute a tight loop until the spinlock is released.
 
