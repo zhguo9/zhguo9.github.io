@@ -4,7 +4,7 @@ typora-root-url: ./
 tags: subsystem
 ---
 
-Copied From Kernelnewbies! For Thanks ! !
+Copied from `Linux IP Networking`, available at *http://original.source/location*.
 
 ***May 31, 2000***
 
@@ -101,10 +101,6 @@ Primary Documenter and Researcher, Version 1.0
 
 
 
-**Chapter 2**
-
-
-
 ## 2. Message Traffic Overview
 
 
@@ -117,9 +113,9 @@ This chapter presents an overview of the entire Linux messaging system. It provi
 
 
 
-The Internet Protocol (IP) is the heart of the Linux messaging system. While Linux (more or less) strictly adheres to the layering concept - and it is possible to use a different protocol (like ATM) - IP is almost always the nexus through which packets flow. The IP implementation of the network layer performs routing and forwarding as well as encapsulating data. See [Figure 2.1](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig2.1) for a simplified diagram of how network packets move through the Linux kernel.
+**The Internet Protocol (IP) is the heart of the Linux messaging system**. While Linux (more or less) strictly adheres to the layering concept - and it is possible to use a different protocol (like ATM) - **IP is almost always the nexus through which packets flow.** **The IP implementation of the network layer performs routing and forwarding as well as encapsulating data.** See [Figure 2.1](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig2.1) for a simplified diagram of how network packets move through the Linux kernel.
 
-![](/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=o_path.png)
+<img src="/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=o_path.png"  />
 
 Figure 2.1: Abstraction of the Linux message traffic path.
 
