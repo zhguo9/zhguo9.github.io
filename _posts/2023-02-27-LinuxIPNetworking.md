@@ -26,13 +26,9 @@ As a reference for kernel programmers, this document includes information and po
 
 This project began in a Computer Science Department networking lab at the University of New Hampshire as an effort to institute changes in the Linux kernel to experiment with different routing algorithms. It quickly became apparent that blindly hacking the kernel was not a good idea, so this document was born as a research record and a reference for future programmers. Finally it became large enough (and hopefully useful enough) that we decided to generalize it, formalize it, and release it for public consumption.
 
-As a final note, Linux is an ever-changing system and truly mastering it, if such a thing is even possible, would take far more time than has been spent putting this reference together. If you notice any misstatements, omissions, glaring errors, or even typos ![(!)](https://kernelnewbies.org/moin_static199/memodump/img/idea.png) within this document, please contact the person who is currently maintaining it. The goal of this project has been to create a freely available and useful reference for Linux programmers.
-
-
+As a final note, Linux is an ever-changing system and truly mastering it, if such a thing is even possible, would take far more time than has been spent putting this reference together. If you notice any misstatements, omissions, glaring errors, or even typos within this document, please contact the person who is currently maintaining it. The goal of this project has been to create a freely available and useful reference for Linux programmers.
 
 ### 1.2. Document Conventions
-
-
 
 It is assumed that the reader understands the C programming language and is acquainted with common network protocols. This is not vital for the more general information but the details within this document are intended for experienced programmers and may be incomprehensible to casual Linux users.
 
@@ -52,10 +48,9 @@ Generic entries or variables (such as an output filename) and comments are writt
 
 There are numerous examples in this document that help clarify the presented material. For the sake of consistency and familiarity, most of them reference the sample network shown in [Figure 1.1](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig1.1).
 
-![](/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=i_example.png)
+<img src="/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=i_example.png" style="zoom:67%;" />
 
-| Figure 1.1: Sample network structure. |
-| :-----------------------------------: |
+Figure 1.1: Sample network structure.
 
 This network represents the computer system at a fictional unnamed University (U!). It has a router connected to the Internet at large (`chrysler`). That machine is connected (through the `jeep` interface) to the campus-wide network, `u.edu`, consisting of computers named for Chrysler owned car companies (`dodge`, `eagle`, etc.). There is also a LAN subnet for the computer science department, `cs.u.edu`, whose hosts are named after Dodge vehicle models (`stealth`, `neon`, etc.). They are connected to the campus network by the `dodge/viper` computer. Both the `u.edu` and `cs.u.edu` networks use Ethernet hardware and protocols.
 

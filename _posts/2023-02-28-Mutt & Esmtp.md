@@ -1,3 +1,9 @@
+---
+title: Mutt & Esmtp
+typora-root-url: ./
+tags: kernel
+---
+
 # mutt & esmtp
 
 `sudo apt install mutt;sudo apt install esmtp`
@@ -65,4 +71,9 @@ In Git terms, a "checkout" is the act of switching between different versions of
 4: Month (0-12 [12 == December])
 5: Day of the week(0-7 [7 or 0 == sunday])
 ```
+
+
+
+
+> Happy Hacking !
 
