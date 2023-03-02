@@ -199,7 +199,7 @@ Linux initializes routing tables on startup only if a computer is configured for
 
 **The entire configuration process can be static or dynamic.** If addresses and names never (or infrequently) change, the system administrator must define options and variables in files when setting up the system. In a more mutable environment, a host will use a protocol like the Dynamic Hardware Configuration Protocol (DHCP) to ask for an address, router, and DNS server information with which to configure itself when it boots. (In fact, in either case, the administrator will almost always use a GUI interface - like Red Hat's Control Panel - which automatically writes the configuration files shown below.)
 
-An important point to note is that while most computers running Linux start up the same way, the programs and their locations are not by any means standardized; they may vary widely depending on distribution, security concerns, or whim of the system administrator. This chapter presents as generic a description as possible but assumes a Red Hat Linux 6.1 distribution and a generally static network environment.
+An important point to note is that while most computers running Linux start up the same way, **the programs and their locations are not by any means standardized; they may vary widely depending on distribution, security concerns, or whim of the system administrator.** This chapter presents as generic a description as possible but assumes a Red Hat Linux 6.1 distribution and a generally static network environment.
 
 
 
