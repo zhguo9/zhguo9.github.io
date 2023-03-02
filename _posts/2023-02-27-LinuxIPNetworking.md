@@ -131,11 +131,19 @@ Along the way, each socket and protocol performs various checks and formatting f
 
 
 
-Network devices form the bottom layer of the protocol stack; they use a link layer protocol (usually Ethernet) to communicate with other devices to send and receive traffic. Input interfaces copy packets from a medium, perform some error checks, and then forward them to the network layer. Output interfaces receive packets from the network layer, perform some error checks, and then send them out over the medium.
+Network devices form the bottom layer of the protocol stack; they use a link layer protocol (usually Ethernet) to communicate with other devices to send and receive traffic. **Input interfaces** **copy packets from a medium**, perform some error checks, and then **forward them to the network layer**. **Output interfaces receive packets from the network layer,** perform some error checks, and then **send them out over the medium.**
+
+> work of data-link layer
 
 IP is the standard network layer protocol. It checks incoming packets to see if they are for the host computer or if they need to be forwarded. It defragments packets if necessary and delivers them to the transport protocols. It maintains a database of routes for outgoing packets; it addresses and fragments them if necessary before sending them down to the link layer.
 
-TCP and UDP are the most common transport layer protocols. UDP simply provides a framework for addressing packets to ports within a computer, while TCP allows more complex connection based operations, including recovery mechanisms for packet loss and traffic management implementations. Either one copies the packet's payload between user and kernel space. However, both are just part of the intermediate layer between the applications and the network.
+> work of network layer
+
+![The TCP/IP Five-Layer Network Model - Coursera](/../public/images/2023-02-27-LinuxIPNetworking/0.jpg)
+
+**TCP and UDP are the most common transport layer protocols**. UDP simply provides a framework for addressing packets to ports within a computer, while TCP allows more complex connection based operations, including recovery mechanisms for packet loss and traffic management implementations. Either one copies the packet's payload between user and kernel space. However, both are just part of the intermediate layer between the applications and the network.
+
+> work of transport layer
 
 IP Specific INET Sockets are the data elements and implementations of generic sockets. They have associated queues and code that executes socket operations such as reading, writing, and making connections. They act as the intermediary between an application's generic socket and the transport layer protocol.
 
@@ -147,37 +155,33 @@ Applications, run in user space, form the top level of the protocol stack; they 
 
 ### 2.3. Packet Structure
 
+> Packets are transmitted over [*packet switched*](http://www.linfo.org/packet_switching.html) networks, which are networks in which each [*message*](http://www.linfo.org/message.html) (i.e., data that is transmitted), such as an e-mail, web page or program download, is cut up into a set small segments prior to transmission. Each packet is then sent individually and can follow the same route or a different route to the common destination. Once all the packets forming a message have arrived at the destination, they are automatically reassembled to recreate the original message.
+>
+>  each packet consists of three main parts: a [*header*](http://www.linfo.org/packet_header.html), a *payload* and a *trailer*.
+>
+> One of the key features of packets is that each one contains a header that consists of instructions regarding its data.
+>
+> The payload, also called the *body* or *data area*, is the actual data (i.e., part of the message) that the packet is delivering to the destination. 
+>
+> The trailer, sometimes called the *footer*, contains several bits that tell the receiving device that it has reached the end of the packet. It may also include some type of error checking.
 
-
-The key to maintaining the strict layering of protocols without wasting time copying parameters and payloads back and forth is the common packet data structure (a socket buffer, or `sk_buff` - Figure 2.2). Throughout all of the various function calls as the data makes it way through the protocols, the payload data is copied only twice; once from user to kernel space and once from kernel space to output medium (for an outbound packet).
+The key to maintaining the strict layering of protocols without wasting time copying parameters and payloads back and forth is **the common packet data structure** (a socket buffer, or `sk_buff` - Figure 2.2). **Throughout all of the various function calls as the data makes it way through the protocols, the payload data is copied only twice**; once from user to kernel space and once from kernel space to output medium (for an outbound packet).
 
 ![](/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=o_skbuff-1677499004880-12.png)
 
 Figure 2.2: Packet (`sk_buff`) structure.
 
-This structure contains pointers to all of the information about a packet - its socket, device, route, data locations, etc. Transport protocols create these packet structures from output buffers, while device drivers create them for incoming data. Each layer then fills in the information that it needs as it processes the packet. All of the protocols - transport (TCP/UDP), internet (IP), and link level (Ethernet) - use the same socket buffer.
-
-
+This structure contains pointers to all of the information about a packet - its socket, device, route, data locations, etc. **Transport protocols** create these packet structures from **output buffers**, while **device drivers** create them for **incoming data**. Each layer then fills in the information that it needs as it processes the packet. **All of the protocols - transport (TCP/UDP), internet (IP), and link level (Ethernet) - use the same socket buffer.**
 
 ### 2.4. Internet Routing
 
-
-
-The IP layer handles routing between computers. It keeps two data structures; a Forwarding Information Base (FIB) that keeps track of all of the details for every known route, and a faster routing cache for destinations that are currently in use. (There is also a third structure - the neighbor table - that keeps track of computers that are physically connected to a host.)
+**The IP layer handles routing between computers.** It keeps two data structures; **a Forwarding Information Base** (FIB) that keeps track of all of the details for every known route, and **a faster routing cache** for destinations that are currently in use. (There is also a third structure - the neighbor table - that keeps track of computers that are physically connected to a host.)
 
 The FIB is the primary routing reference; it contains up to 32 zones (one for each bit in an IP address) and entries for every known destination. Each zone contains entries for networks or hosts that can be uniquely identified by a certain number of bits - a network with a netmask of 255.0.0.0 has 8 significant bits and would be in zone 8, while a network with a netmask of 255.255.255.0 has 24 significant bits and would be in zone 24. When IP needs a route, it begins with the most specific zones and searches the entire table until it finds a match (there should always be at least one default entry). The file */proc/net/route* has the contents of the FIB.
 
 The routing cache is a hash table that IP uses to actually route packets. It contains up to 256 chains of current routing entries, with each entry's position determined by a hash function. When a host needs to send a packet, IP looks for an entry in the routing cache. If there is none, it finds the appropriate route in the FIB and inserts a new entry into the cache. (This entry is what the various protocols use to route, not the FIB entry.) The entries remain in the cache as long as they are being used; if there is no traffic for a destination, the entry times out and IP deletes it. The file */proc/net/rt_cache* has the contents of the routing cache.
 
 These tables perform all the routing on a normal system. Even other protocols (such as RIP) use the same structures; they just modify the existing tables within the kernel using the `ioctl()` function. See [Chapter 8](https://kernelnewbies.org/Documents/LinuxIPNetworking#chapter8) for routing details.
-
-
-
-
-
-**Chapter 3**
-
-
 
 ## 3. Network Initialization
 
@@ -193,9 +197,9 @@ This chapter presents network initialization on startup. It provides an overview
 
 Linux initializes routing tables on startup only if a computer is configured for networking. (Almost all Linux machines do implement networking, even stand-alone machines, if only to use the loopback device.) When the kernel finishes loading itself, it runs a set of common but system specific utility programs and reads configuration files, several of which establish the computer's networking capabilities. These determine its own address, initialize its interfaces (such as Ethernet cards), and add critical and known static routes (such as one to a router that connects it with the rest of the Internet). If the computer is itself a router, it may also execute a program that allows it to update its routing tables dynamically (but this is NOT run on most hosts).
 
-The entire configuration process can be static or dynamic. If addresses and names never (or infrequently) change, the system administrator must define options and variables in files when setting up the system. In a more mutable environment, a host will use a protocol like the Dynamic Hardware Configuration Protocol (DHCP) to ask for an address, router, and DNS server information with which to configure itself when it boots. (In fact, in either case, the administrator will almost always use a GUI interface - like Red Hat's Control Panel - which automatically writes the configuration files shown below.)
+**The entire configuration process can be static or dynamic.** If addresses and names never (or infrequently) change, the system administrator must define options and variables in files when setting up the system. In a more mutable environment, a host will use a protocol like the Dynamic Hardware Configuration Protocol (DHCP) to ask for an address, router, and DNS server information with which to configure itself when it boots. (In fact, in either case, the administrator will almost always use a GUI interface - like Red Hat's Control Panel - which automatically writes the configuration files shown below.)
 
-An important point to note is that while most computers running Linux start up the same way, the programs and their locations are not by any means standardized; they may vary widely depending on distribution, security concerns, or whim of the system administrator. This chapter presents as generic a description as possible but assumes a Red Hat Linux 6.1 distribution and a generally static ``network environment.
+An important point to note is that while most computers running Linux start up the same way, the programs and their locations are not by any means standardized; they may vary widely depending on distribution, security concerns, or whim of the system administrator. This chapter presents as generic a description as possible but assumes a Red Hat Linux 6.1 distribution and a generally static network environment.
 
 
 
