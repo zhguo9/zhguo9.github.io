@@ -922,8 +922,6 @@ This chapter presents the sending side of message trafficking. It provides an ov
 
 ### 5.1. Overview
 
-
-
 <img src="/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=s_tx-1677499128270-14.png" style="transform:rotate(90deg);"/>
 
 Figure 5.1: Message transmission.
@@ -1367,11 +1365,9 @@ See [Figure 7.1](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig7.1) f
 
 
 
-| ![f_fwd.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=f_fwd.png) |
-| ------------------------------------------------------------ |
-| Figure 7.1: IP Forwarding.                                   |
+<img src="/../public/images/2023-02-27-IP%20Networking/LinuxIPNetworkingaction=AttachFile&do=get&target=f_fwd.png" style="transform:rotate(90deg);"/>
 
-
+Figure 7.1: IP Forwarding.
 
 A forwarded packet arrives with an interrupt when the system notifies the device that a message is ready. The device allocates storage space and tells the bus to put the message into that space. It then passes the packet to the link layer, which puts it on the backlog queue, marks the network flag for the next "bottom-half" run, and returns control to the current process.
 
@@ -1591,13 +1587,9 @@ This chapter presents the basics of IP Routing. It provides an overview of how r
 
 Linux maintains three sets of routing data - one for computers that are directly connected to the host (via a LAN, for example) and two for computers that are only indirectly connected (via IP networking). Examine [Figure 8.1](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig8.1) to see how entries for a computer in the general example might look.
 
+![r_overview.png](/../public/images/2023-02-27-IP%20Networking/LinuxIPNetworkingaction=AttachFile&do=get&target=r_overview.png)
 
-
-| ![r_overview.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=r_overview.png) |
-| ------------------------------------------------------------ |
-| Figure 8.1: General Routing Table Example.                   |
-
-
+Figure 8.1: General Routing Table Example.
 
 The neighbor table contains address information for computers that are physically connected to the host (hence the name "neighbor"). It includes information on which device connects to which neighbor and what protocols to use in exchanging data. Linux uses the Address Resolution Protocol (ARP) to maintain and update this table; it is dynamic in that entries are added when needed but eventually disappear if not used again within a certain time. (However, administrators can set up entries to be permanent if doing so makes sense.)
 
@@ -1619,13 +1611,9 @@ Note: within these tables, there are references to variables of types such as `u
 
 The Neighbor Table (whose structure is shown in [Figure 8.2](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig8.2)) contains information about computers that are physically linked with the host computer. (Note that the source code uses the European spelling, "neighbour".) Entries are not (usually) persistent; this table may contain no entries (if the computer has not passed any network traffic recently) or may contain as many entries as there are computers physically connected to its network (if it has communicated with all of them recently). Entries in the table are actually other table structures which contain addressing, device, protocol, and statistical information.
 
+![r_neigh_struct.png](/../public/images/2023-02-27-IP%20Networking/LinuxIPNetworkingaction=AttachFile&do=get&target=r_neigh_struct.png)
 
-
-| ![r_neigh_struct.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=r_neigh_struct.png) |
-| ------------------------------------------------------------ |
-| Figure 8.2: Neighbor Table Data Structure Relationships.     |
-
-
+Figure 8.2: Neighbor Table Data Structure Relationships.
 
 `struct neigh_table *neigh_tables` - this global variable is a pointer to a list of neighbor tables; each table contains a set of general functions and data and a hash table of specific information about a set of neighbors. This is a very detailed, low level table containing specific information such as the approximate transit time for messages, queue sizes, device pointers, and pointers to device functions.
 
@@ -1650,15 +1638,11 @@ Neighbor Data (`struct neighbour`) Structure - these structures contain the spec
 
 #### 8.2.2. The Forwarding Information Base
 
+![r_fib_gen.png](/../public/images/2023-02-27-IP%20Networking/LinuxIPNetworkingaction=AttachFile&do=get&target=r_fib_gen.png)
 
 
 
-
-| ![r_fib_gen.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=r_fib_gen.png) |
-| ------------------------------------------------------------ |
-| Figure 8.3: Forwarding Information Base (FIB) conceptual organization. |
-
-
+Figure 8.3: Forwarding Information Base (FIB) conceptual organization.
 
 The Forwarding Information Base (FIB) is the most important routing structure in the kernel; it is a complex structure that contains the routing information needed to reach any valid IP address by its network mask. Essentially it is a large table with general address information at the top and very specific information at the bottom. The IP layer enters the table with the destination address of a packet and compares it to the most specific netmask to see if they match. If they do not, IP goes on to the next most general netmask and again compares the two. When it finally finds a match, IP copies the "directions" to the distant host into the routing cache and sends the packet on its way. See Figures [8.3](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig8.3) and [8.4](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig8.4) for the organization and data structures used in the FIB - note that Figure [8.3](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig8.3) shows some different FIB capabilities, like two sets of network information for a single zone, and so does not follow the general example.)
 
@@ -1699,13 +1683,9 @@ Network Protocol Information (`fib_info`) Structure - *include/net/ip_fib.h* - t
 - `struct fib_nh fib_nh[0]` - contains a pointer to the device used for sending or receiving traffic for this route.
 - Other fields include list pointers and statistical and reference data (like `fib_refcnt` and `fib_flags`).
 
+![r_fib_struct.png](/../public/images/2023-02-27-IP%20Networking/LinuxIPNetworkingaction=AttachFile&do=get&target=r_fib_struct.png)
 
-
-| ![r_fib_struct.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=r_fib_struct.png) |
-| ------------------------------------------------------------ |
-| Figure 8.4: Forwarding Information Base (FIB) data relationships. |
-
-
+Figure 8.4: Forwarding Information Base (FIB) data relationships.
 
 **FIB Traversal Example**
 
@@ -1729,13 +1709,9 @@ Network Protocol Information (`fib_info`) Structure - *include/net/ip_fib.h* - t
 
 
 
+![r_cache_gen.png](/../public/images/2023-02-27-IP%20Networking/LinuxIPNetworkingaction=AttachFile&do=get&target=r_cache_gen.png)
 
-
-| ![r_cache_gen.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=r_cache_gen.png) |
-| ------------------------------------------------------------ |
-| Figure 8.5: Routing Cache Conceptual Organization.           |
-
-
+Figure 8.5: Routing Cache Conceptual Organization.
 
 The routing cache is the fastest method Linux has to find a route; it keeps every route that is currently in use or has been used recently in a hash table. When IP needs a route, it goes to the appropriate hash bucket and searches the chain of cached routes until finds a match, then sends the packet along that path. (See [Section 8.2.2](https://kernelnewbies.org/Documents/LinuxIPNetworking#sec8.2.2) for what happens when the route is not yet in the cache.) Routes are chained in order, most frequently used first, and have timers and counters that remove them from the table when they are no longer in use. See Figure [8.5](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig8.5) for an abstract overview and Figures [8.6](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig8.6) and [8.7 8.7](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig) for detailed diagrams of the data structures.
 
@@ -1771,21 +1747,13 @@ Neighbor Link (`neighbor`) Structure - *include/net/neighbor.h* - these structur
 - `struct neigh_ops *ops` - a pointer to a structure that containing family data and and output functions for this link.
 - Other fields hold statistical and state information and references to other neighbors.
 
+![r_cache_struct.png](/../public/images/2023-02-27-IP%20Networking/LinuxIPNetworkingaction=AttachFile&do=get&target=r_cache_struct.png)
 
+Figure 8.6: Routing Cache data structure relationships.
 
-| ![r_cache_struct.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=r_cache_struct.png) |
-| ------------------------------------------------------------ |
-| Figure 8.6: Routing Cache data structure relationships.      |
+![r_dst_struct.png](/../public/images/2023-02-27-IP%20Networking/LinuxIPNetworkingaction=AttachFile&do=get&target=r_dst_struct.png)
 
-
-
-
-
-| ![r_dst_struct.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=r_dst_struct.png) |
-| ------------------------------------------------------------ |
-| Figure 8.7: Destination Cache data structure relationships.  |
-
-
+Figure 8.7: Destination Cache data structure relationships.
 
 **Routing Cache Traversal Example:**
 
@@ -2028,13 +1996,9 @@ However, a router must make decisions on where to send traffic. There may be sev
 
 Using RIP, each node maintains a table that contains the distance from itself to other networks and the route along which it will send packets to that destination. Periodically the routers update each other; when shorter routes becomes apparent, the node updates its table. Updates are simply RIP messages with the destination address and metric components of this table. See [Figure 9.1](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig9.1) for a diagram of an RIP routing table and an RIP packet.
 
+![d_rip.png](/../public/images/2023-02-27-IP%20Networking/LinuxIPNetworkingaction=AttachFile&do=get&target=d_rip.png)
 
-
-| ![d_rip.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=d_rip.png) |
-| ------------------------------------------------------------ |
-| Figure 9.1: Routing Information Protocol packet and table.   |
-
-
+Figure 9.1: Routing Information Protocol packet and table.
 
 
 
@@ -2947,13 +2911,9 @@ This program is implemented as a module that, while installed, compares each out
 
 This example was implemented on two computers that are connected through a single router as shown in [Figure 13.1](https://kernelnewbies.org/Documents/LinuxIPNetworking#fig13.1); the router runs the modifed kernel and packet dropper module. In the general example, this represents traffic flowing between `neon` and `eagle`, with `dodge/viper` dropping packets for `eagle`.
 
+![x_setup.png](/../public/images/2023-02-27-IP%20Networking/LinuxIPNetworkingaction=AttachFile&do=get&target=x_setup.png)
 
-
-| ![x_setup.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=x_setup.png) |
-| ------------------------------------------------------------ |
-| Figure 13.1: Experimental System Setup.                      |
-
-
+Figure 13.1: Experimental System Setup.
 
 The switch is a Cisco Catalyst 2900 set up with Virtual LANs (VLANs) for each "subnetwork" (one for the source computer and one for the destination computer, with the routing computer acting as the router between the two. The switch operates entirely on the link level and is essentially invisible for routing purposes.
 
