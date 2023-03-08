@@ -227,7 +227,7 @@ When the network script finishes, the FIB contains the specified routes to given
 
 
 
-The *ifconfig* program configures interface devices for use. (This program, while very widely used, is not part of the kernel.) It provides each device with its (IP) address, netmask, and broadcast address. The device in turn will run its own initialization functions (to set any static variables) and register its interrupts and service routines with the kernel. The *ifconfig* commands in the network script look like this:
+**The *ifconfig* program configures interface devices for use.** (This program, while very widely used, is not part of the kernel.) It provides each device with its (IP) address, netmask, and broadcast address. The device in turn will run its own initialization functions (to set any static variables) and register its interrupts and service routines with the kernel. The *ifconfig* commands in the network script look like this:
 
 
 
@@ -360,19 +360,11 @@ A superuser can use *route* to add and delete IP routes from the command line; h
 
 #### 3.2.4. Dynamic Routing Programs
 
-
-
 If the computer is a router, the network script will run a routing program like *routed* or *gated*. Since most computers are always on the same hard-wired network with the same set of addresses and limited routing options, most computers do not run one of these programs. (If an Ethernet cable is cut, traffic simply will not flow; there is no need to try to reroute or adjust routing tables.) See [Chapter 9](https://kernelnewbies.org/Documents/LinuxIPNetworking#chapter9) for more information about *routed*.
-
-
 
 ### 3.3. Examples
 
-
-
 The following are examples of files for systems set up in three different ways and explanations of how they work. Typically every computer will execute a network script that reads configuration files, even if the files tell the computer not to implement any networking.
-
-
 
 #### 3.3.1. Home Computer
 
@@ -380,7 +372,7 @@ The following are examples of files for systems set up in three different ways a
 
 These files would be on a computer that is not permanently connected to a network, but has a modem for `ppp` access. (This section does not reference a computer from the general example.)
 
-This is the first file the network script will read; it sets several environment variables. The first two variables set the computer to run networking programs (even though it is not on a network) but not to forward packets (since it has nowhere to send them). The last two variables are generic entries.
+**This is the first file the network script will read; it sets several environment variables.** The first two variables set the computer to run networking programs (even though it is not on a network) but not to forward packets (since it has nowhere to send them). The last two variables are generic entries.
 
 */etc/sysconfig/network*
 
@@ -393,7 +385,7 @@ This is the first file the network script will read; it sets several environment
 
 
 
-After setting these variables, the network script will decide that it needs to configure at least one network device in order to be part of a network. The next file (which is almost exactly the same on all Linux computers) sets up environment variables for the loopback device. It names it and gives it its (standard) IP address, network mask, and broadcast address as well as any other device specific variables. (The ONBOOT variable is a flag for the script program that tells it to configure this device when it boots.) Most computers, even those that will never connect to the Internet, install the loopback device for inter-process communication.
+After setting these variables, the network script will decide that it needs to configure at least one network device in order to be part of a network. **The next file (which is almost exactly the same on all Linux computers) sets up environment variables for the loopback device.** It names it and gives it its (standard) IP address, network mask, and broadcast address as well as any other device specific variables. (The ONBOOT variable is a flag for the script program that tells it to configure this device when it boots.) **Most computers, even those that will never connect to the Internet, install the loopback device for inter-process communication.**
 
 */etc/sysconfig/network-scripts/ifcfg-lo*
 
@@ -416,11 +408,9 @@ After setting these variables, the script will run the *ifconfig* program and st
 
 #### 3.3.2. Host Computer on a LAN
 
-
-
 These files would be on a computer that is connected to a LAN; it has one Ethernet card that should come up whenever the computer boots. These files reflect entries on the `stealth` computer from the general example.
 
-This is the first file the network script will read; again the first variables simply determine that the computer will do networking but that it will not forward packets. The last four variables identify the computer and its link to the rest of the Internet (everything that is not on the LAN).
+This is the first file the network script will read; **again the first variables simply determine that the computer will do networking but that it will not forward packets.** The last four variables identify the computer and its link to the rest of the Internet (everything that is not on the LAN).
 
 */etc/sysconfig/network*
 
@@ -435,7 +425,7 @@ This is the first file the network script will read; again the first variables s
 
 
 
-After setting these variables, the network script will configure the network devices. This file sets up environment variables for the Ethernet card. It names the device and gives it its IP address, network mask, and broadcast address as well as any other device specific variables. This kind of computer would also have a loopback configuration file exactly like the one for a non-networked computer.
+After setting these variables, the network script will **configure the network devices. This file sets up environment variables for the Ethernet card**. It names the device and gives it its IP address, network mask, and broadcast address as well as any other device specific variables. This kind of computer would also have a loopback configuration file exactly like the one for a non-networked computer.
 
 */etc/sysconfig/network-scripts/ifcfg-eth0*
 
@@ -465,13 +455,9 @@ After setting these variables, the network script will configure the network dev
 
 
 
-After setting these variables, the network script will run the *ifconfig* program to start the device. Finally, the script will run the *route* program to add the default route (`GATEWAY`) and any other specified routes (found in the */etc/sysconfig/static-routes* file, if any). In this case only the default route is specified, since all traffic either stays on the LAN (where the computer will use ARP to find other hosts) or goes through the router to get to the outside world.
-
-
+After setting these variables, the network script will **run the *ifconfig* program to start the device.** Finally, the script will run the *route* program to add the default route (`GATEWAY`) and any other specified routes (found in the */etc/sysconfig/static-routes* file, if any). In this case only the default route is specified, since all traffic either stays on the LAN (where the computer will use ARP to find other hosts) or goes through the router to get to the outside world.
 
 #### 3.3.3. Network Routing Computer
-
-
 
 These files would be on a computer that serves as a router between two networks; it has two Ethernet cards, one for each network. One card is on a large network (WAN) connected to the Internet (through yet another router) while the other is on a subnetwork (LAN). Computers on the LAN that need to communicate with the rest of the Internet send traffic through this computer (and vice versa). These files reflect entries on the `dodge/viper` computer from the general example.
 
@@ -652,14 +638,6 @@ route_info() - SOURCES/lib/getroute.c (72)
   checks for errors (unsupported or nonexistent family)
   calls the address family rprint() function [= INET_rprint()]
 ```
-
-
-
-
-
-
-
-**Chapter 4**
 
 
 
@@ -946,7 +924,7 @@ This chapter presents the sending side of message trafficking. It provides an ov
 
 
 
-![](/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=s_tx-1677499128270-14.png)
+<img src="/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=s_tx-1677499128270-14.png" style="transform:rotate(90deg);"/>
 
 Figure 5.1: Message transmission.
 
@@ -1134,15 +1112,9 @@ This chapter presents the receiving side of message trafficking. It provides an 
 
 ### 6.1. Overview
 
+<img src="/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=r_rx-1677499281736-15.png" style="transform:rotate(90deg);"/>
 
-
-![](/../public/images/2023-02-27-LinuxIPNetworking/LinuxIPNetworkingaction=AttachFile&do=get&target=r_rx-1677499281736-15.png)
-
-| ![r_rx.png](https://kernelnewbies.org/Documents/LinuxIPNetworking?action=AttachFile&do=get&target=r_rx.png) |
-| ------------------------------------------------------------ |
-| Figure 6.1: Receiving messages.                              |
-
-
+图 6.1：接收消息
 
 An incoming message begins with an interrupt when the system notifies the device that a message is ready. The device allocates storage space and tells the bus to put the message into that space. It then passes the packet to the link layer, which puts it on the backlog queue, and marks the network flag for the next "bottom-half" run.
 

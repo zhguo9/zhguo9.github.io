@@ -1,5 +1,5 @@
 ---
-title: Bridging_and_Forwarding
+title: Network Bridging and Forwarding
 typora-root-url: ./
 tags: subsystem
 ---

@@ -1,5 +1,5 @@
 ---
-title: Linux-Command
+title: Useful Command
 typora-root-url: ./
 tags: 
 ---

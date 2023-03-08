@@ -1,10 +1,8 @@
 ---
-title: Log problems(Remote Server)
+title: Log To Remote Server
 typora-root-url: ./
 tags: server
 ---
-
-[toc]
 
 # How to login into a machine shortly
 

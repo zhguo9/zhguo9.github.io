@@ -1,5 +1,5 @@
 ---
-title: Mutt & Esmtp
+title: Learning Kernel
 typora-root-url: ./
 tags: kernel
 ---
@@ -71,6 +71,34 @@ In Git terms, a "checkout" is the act of switching between different versions of
 4: Month (0-12 [12 == December])
 5: Day of the week(0-7 [7 or 0 == sunday])
 ```
+
+
+
+## Change your config
+
+`make localmodconfig` :  generate the .config with a kernel module that is in using now
+
+## Build the kernel
+
+`make -j 10` : use 10 cores of your CPU to compile.
+
+## Install the kernel
+
+In Ubuntu,use:
+
+```shell
+sudo make modules_install install
+```
+
+`make modules_install` : install kernel modules to `/lib/modules/`
+
+`make install` : Install the kernel binary image, generate and install the BOOT initialization file system image file
+
+## Uninstall the kernel
+
+1. remove unused kernel lib file under `/lib/modules` 
+2. remove kernel image under `/boot` (initrd.img config  vmlinuz System.map)
+3. `sudo update-grub2`
 
 
 

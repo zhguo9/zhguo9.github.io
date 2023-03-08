@@ -1,5 +1,5 @@
 ---
-title: typora and jekyll (image)
+title: Blog Image Insert
 typora-root-url: ./
 layout: post
 tags: blog

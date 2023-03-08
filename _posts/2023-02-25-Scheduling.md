@@ -1,5 +1,5 @@
 ---
-title: Linux-Subsystem-Scheduling
+title: Scheduling
 typora-root-url: ./
 tags: translate subsystem
 ---
